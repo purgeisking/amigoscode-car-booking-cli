@@ -72,7 +72,7 @@ public class CarBookingService {
             }
         }
 // 6. Count the days with ChronoUnit.DAYS.between(startDate, endDate)
-             int numberOfDays = Math.toIntExact(ChronoUnit.DAYS.between(startDate, endDate));
+        int numberOfDays = Math.toIntExact(ChronoUnit.DAYS.between(startDate, endDate));
 
 // 7. Calculate the price: car.getRentalPricePerDay() x numberOfDays
         BigDecimal price = car.getRentalPricePerDay().multiply(new BigDecimal(numberOfDays));
