@@ -22,22 +22,7 @@ public class CarBooking {
     public CarBooking() {
     }
 
-    public CarBooking(User user,
-                      Car car,
-                      LocalDate startDate,
-                      LocalDate endDate,
-                      BigDecimal price,
-                      BookingStatus status,
-                      LocalDateTime bookedAt) {
-        this.id = UUID.randomUUID();
-        this.user = user;
-        this.car = car;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.price = price;
-        this.status = status;
-        this.bookedAt = bookedAt;
-    }
+
 
     public CarBooking(UUID id,
                       User user,
@@ -48,7 +33,7 @@ public class CarBooking {
                       BookingStatus status,
                       LocalDateTime bookedAt)
     {
-        this.id = UUID.randomUUID();
+        this.id = id;
         this.user = user;
         this.car = car;
         this.startDate = startDate;
