@@ -11,7 +11,6 @@ public class User {
     }
 
     public User(String name) {
-        this.id = UUID.randomUUID();
         this.name = name;
     }
 
@@ -55,4 +54,5 @@ public class User {
                 ", name='" + name + '\'' +
                 '}';
     }
+
 }
