@@ -14,6 +14,11 @@ public class Car {
     public Car() {
     }
 
+    public Car(UUID id, BigDecimal rentalPricePerDay) {
+        this.id = id;
+        this.rentalPricePerDay = rentalPricePerDay;
+    }
+
     public Car(Brand brand) {
         this.brand = brand;
     }

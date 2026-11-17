@@ -10,6 +10,7 @@ import com.augustine.car.CarService;
 import com.augustine.user.User;
 import com.augustine.user.UserService;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,111 +23,101 @@ import java.util.UUID;
 
 public class Main {
     public static void main(String[] args) {
+        UserService userService = new UserService();
+        CarService carService = new CarService();
+        CarBookingService bookingService = new CarBookingService();
         Scanner scanner = new Scanner(System.in);
 
-        CarService carService = new CarService();
-        UserService userService = new UserService();
-        CarBookingDAO carBookingDAO = new CarBookingDAO();
-        CarDAO carDAO = new CarDAO();
-        CarBookingService carBookingService = new CarBookingService(carService, userService, carBookingDAO);
-        boolean loopIsActive = true;
+        boolean running = true;
 
-        while (loopIsActive){
-            System.out.println("""
-                    1 - Book Car
-                    2 - Delete Booking
-                    3 - View All User Booked Cars
-                    4 - View All Bookings
-                    5 - View Available Cars
-                    6 - View Available Electric Cars
-                    7 - View All Users
-                    8 - Exit
-                    """
-            );
+        try {
 
-            try {
-                String choice = scanner.nextLine().trim();
-                switch (choice){
-                    case "1" -> {
-                        System.out.print("Input User id: ");
-                        UUID userId = UUID.fromString(scanner.nextLine().trim());
 
-                        System.out.print("Input car Id: ");
-                        UUID carId = UUID.fromString(scanner.nextLine().trim());
 
-                        System.out.print("Booking start date: ");
-                        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyy");
-                        LocalDate startDate = LocalDate.parse(scanner.nextLine(), dateTimeFormatter);
+        while (running){
+            System.out.println("\n===== CAR BOOKING SYSTEM =====");
+            System.out.println("1. Register User");
+            System.out.println("2. Register Car");
+            System.out.println("3. Book Car");
+            System.out.println("4. View All Bookings");
+            System.out.println("5. View User Bookings");
+            System.out.println("6. View Car Bookings");
+            System.out.println("7. Exit");
 
-                        System.out.print("Booking end date: ");
-                        LocalDate endDate = LocalDate.parse(scanner.nextLine(), dateTimeFormatter);
+            System.out.print("Choose an option: ");
 
-                        CarBooking booking = carBookingService.bookCar(userId, carId, startDate, endDate);
-                        System.out.println("This is the Booked Car info");
-                        System.out.println(booking);
-                    }
+            String choice = scanner.nextLine().trim();
 
-                    case "2" -> {
-                        System.out.println("Enter Id of booking you wish to delete: ");
-                        UUID id = UUID.fromString(scanner.nextLine());
-                       CarBooking deletedCarbooking = carBookingService.deleteBookingById(id);
-                       System.out.println("This car has successfully been deleted");
-                        System.out.println(deletedCarbooking);
-                    }
+            switch (choice){
+                case "1" -> {
+                    System.out.print("Enter user id: ");
+                    UUID id = UUID.fromString(scanner.nextLine());
 
-                    case "3" -> {
-                        System.out.println("enter Id of booked cars: ");
-                        UUID id = UUID.fromString(scanner.nextLine());
-                        CarBooking[] userBookedCars = carBookingService.getAllUserBookedCars(id);
+                    System.out.print("Enter user name: ");
+                    String name = scanner.nextLine();
 
-                        System.out.println("This are the following cars booked by user: ");
-                        System.out.println(Arrays.toString(userBookedCars));
-                    }
-
-                    case "4" -> {
-                        System.out.println("this is a list of all bookings: ");
-                        CarBooking[] listOfAllBookings = carBookingService.getAllBookings();
-                        System.out.println(Arrays.toString(listOfAllBookings));
-                    }
-
-                    case "5" -> {
-                        System.out.println("Here is a list of available cars for booking");
-                        Car[] availableCars = carDAO.findAllCars();
-                        System.out.println(Arrays.toString(availableCars));
-                    }
-
-                    case "6" -> {
-                        System.out.println("Here is a list of Electric cars for booking");
-                        Car[] availableElectricCars = carBookingService.getAllAvailableElectricCars();
-                        System.out.println(Arrays.toString(availableElectricCars));
-                    }
-
-                    case "7" -> {
-                        System.out.println("This is a list of all Users");
-                        User[] allUsers = userService.findAllUsers();
-                        System.out.println(Arrays.toString(allUsers));
-                    }
-                    case "8" -> {
-                        loopIsActive = false;
-                        System.out.println("This loop exits here");
-                    }
-
-                    default -> System.out.println("Invalid input... choose from 1-8");
-
+                    userService.registerUser(id, name);
                 }
-            }catch (InputMismatchException e) {
-                System.out.println("Invalid input!");
-                scanner.nextLine();
-            } catch (IllegalArgumentException e) {
-                System.out.println(
-                        "Error: " + e.getMessage()
-                );
+                case "2" -> {
+                    System.out.print("Enter car Id: ");
+                    UUID id = UUID.fromString(scanner.nextLine());
+
+                    System.out.print("Enter rental price per day: ");
+                    BigDecimal rentalPricePerDay = scanner.nextBigDecimal();
+                }
+
+                case "3" -> {
+                    System.out.print("Enter Booking Id: ");
+                    UUID id = UUID.fromString(scanner.nextLine());
+
+                    System.out.print("Enter Car Id: ");
+                    UUID carId = UUID.fromString(scanner.nextLine());
+
+                    System.out.print("Enter User Id: ");
+                    UUID userId = UUID.fromString(scanner.nextLine());
+
+                    System.out.print("Enter start date (yyyy-MM-dd): ");
+                    LocalDate startDate = LocalDate.parse(scanner.nextLine());
+
+                    System.out.print("Enter end date (yyyy-MM-dd): ");
+                    LocalDate endDate = LocalDate.parse(scanner.nextLine());
+
+                    bookingService.bookCar(
+                            id,
+                            userId,
+                            carId,
+                            startDate,
+                            endDate
+                    );
+                }
+                case "4" -> {
+                    System.out.println("This is a list of all bookings: ");
+                    System.out.println(Arrays.toString(carService.findAllCars()));
+                }
+
+                case "5" -> {
+                    System.out.println("this is a list of bookings for this user: ");
+                    UUID id = UUID.fromString(scanner.nextLine());
+                    System.out.println(Arrays.toString(bookingService.findBookingsByUserId(id)));
+                }
+
+                case "6" -> {
+                    System.out.println("this is a list of all car Bookings with Id: ");
+                    UUID id = UUID.fromString(scanner.nextLine());
+                    System.out.println(Arrays.toString(bookingService.findBookingsByCarId(id)));
+                }
+
+                case "7" -> {
+                    running = false;
+                    System.out.println("End of session");
+                }
+                default -> {
+                    System.out.println("Invalid input: choose from 1 - 7");
+                }
             }
-
         }
-
-
-scanner.close();
+    }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
-
     }
