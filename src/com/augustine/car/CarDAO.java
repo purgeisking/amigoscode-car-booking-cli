@@ -1,47 +1,73 @@
 package com.augustine.car;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CarDAO {
-    private final static Car[] cars ;
+    private Car[] cars = new  Car[10];
+    private int size = 0;
 
-    static {
-        cars = new Car[]{
-                new Car(
-                        UUID.fromString("a12f4b8c-3d91-4e67-8a25-6c9d0f1e2b43"),
-                        "LT-001-AA",
-                        new BigDecimal("25000"),
-                        Brand.TOYOTA,
-                        false
-                ),
 
-                new Car(
-                        UUID.fromString("b23a5c9d-4e82-4f16-9b37-7d0e1a2c3f54"),
-                        "LT-002-BB",
-                        new BigDecimal("30000"),
-                        Brand.MERCEDES,
-                        false
-                ),
+    // Register a new car
+    public void save(Car car){
+        if (car == null){
+            throw new IllegalArgumentException("Car cannot be null");
+        }
 
-                new Car(
-                        UUID.fromString("c34b6d0e-5f93-4027-ac48-8e1f2b3d4a65"),
-                        "LT-003-CC",
-                        new BigDecimal("35000"),
-                        Brand.MERCEDES,
-                        false
-                ),
-
-                new Car(
-                        UUID.fromString("d45c7e1f-6a04-4138-bd59-9f2a3c4e5b76"),
-                        "LT-004-DD",
-                        new BigDecimal("40000"),
-                        Brand.TESLA,
-                        true
-                )
-        };
+        validateSize();
+        cars[size] = car;
+        size++;
     }
-    public Car[] findAllCars(){
-        return cars;
+
+    // Return all registered cars
+    public Car[] findAll(){
+        return Arrays.copyOf(cars, size);
+    }
+
+    // Find a car using its ID
+    public Optional<Car> findById(UUID id){
+        if (id == null){
+            return Optional.empty();
+        }
+
+        for (int i = 0; i < size; i++) {
+            Car car = cars[i];
+            if (car.getId() != null && id.equals(car.getId())){
+                return Optional.of(car);
+            }
+        }
+        return Optional.empty();
+    }
+
+
+
+    // Delete a car using its ID
+    public Optional<Car> deleteById(UUID id){
+        if (id == null){
+            return Optional.empty();
+        }
+
+        for (int i = 0; i < size; i++) {
+            Car car = cars[i];
+            if (car.getId() != null && id.equals(car.getId())){
+                Car deletedCar = car;
+
+                for (int j = i; j < size - 1; j++) {
+                    cars[j] = cars[j +1];
+                }
+                cars[size - 1] = null;
+                size--;
+                return Optional.of(deletedCar);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void validateSize(){
+        if (size == cars.length){
+            cars = Arrays.copyOf(cars, cars.length * 2);
+        }
     }
 }
