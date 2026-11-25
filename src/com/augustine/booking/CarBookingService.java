@@ -1,12 +1,10 @@
 package com.augustine.booking;
 
-import com.augustine.car.Brand;
+
 import com.augustine.car.Car;
 import com.augustine.car.CarDAO;
-import com.augustine.car.CarService;
 import com.augustine.user.User;
 import com.augustine.user.UserDAO;
-import com.augustine.user.UserService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,57 +14,84 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CarBookingService {
-    CarBookingDAO carBookingDAO = new CarBookingDAO();
 
-    UserDAO userDAO = new UserDAO();
+    private final CarBookingDAO carBookingDAO;
+    private final UserDAO userDAO;
+    private final CarDAO carDAO;
 
-    CarDAO carDAO = new CarDAO();
+    public CarBookingService(
+            CarBookingDAO carBookingDAO,
+            UserDAO userDAO,
+            CarDAO carDAO) {
 
+        this.carBookingDAO = carBookingDAO;
+        this.userDAO = userDAO;
+        this.carDAO = carDAO;
+    }
 
-    // Book a car for a customer
-    public void bookCar(UUID id, UUID userId, UUID carId,
-                        LocalDate startDate, LocalDate endDate){
+    // Book a car
+    public void bookCar(
+            UUID id,
+            UUID userId,
+            UUID carId,
+            LocalDate startDate,
+            LocalDate endDate) {
 
-        if (id == null){
-            throw new IllegalArgumentException("Id cannot be null");
+        if (id == null) {
+            throw new IllegalArgumentException("Booking ID cannot be null");
         }
 
-        if (userId == null){
-            throw new IllegalArgumentException("costumer Id cannot be null");
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
         }
 
-        if (carId == null){
-            throw new IllegalArgumentException("Car Id cannot be null");
+        if (carId == null) {
+            throw new IllegalArgumentException("Car ID cannot be null");
         }
 
-        if (startDate.isAfter(endDate)){
-            throw new IllegalArgumentException("Invalid Date");
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Dates cannot be null");
         }
 
-        Optional<User> user = userDAO.findById(userId);
-
-        if (user.isEmpty()){
-            throw new IllegalArgumentException("User not found");
+        if (startDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Start date cannot be in the past");
         }
 
-        Optional<Car> car = carDAO.findById(carId);
-        if (car.isEmpty()){
-            throw new IllegalArgumentException("Car not found");
+        if (!endDate.isAfter(startDate)) {
+            throw new IllegalArgumentException("End date must be after start date");
         }
 
+        if (carBookingDAO.findById(id).isPresent()) {
+            throw new IllegalArgumentException("Booking ID already exists");
+        }
+
+        // Check whether user exists
+        User user = userDAO.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("User not found"));
+
+        // Check whether car exists
+        Car car = carDAO.findById(carId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Car not found"));
+
+        // Check availability
         if (!isCarAvailable(carId, startDate, endDate)) {
-            throw new IllegalArgumentException("Car is not available for these dates");
+            throw new IllegalArgumentException(
+                    "Car is not available for these dates"
+            );
         }
 
+        // Calculate inclusive rental days
+        long days = ChronoUnit.DAYS.between(startDate, endDate) + 1;
 
-        long day = ChronoUnit.DAYS.between(startDate, endDate);
-
-        BigDecimal price = car.get().getRentalPricePerDay().multiply(BigDecimal.valueOf(day));
+        BigDecimal price = car.getRentalPricePerDay()
+                .multiply(BigDecimal.valueOf(days));
 
         CarBooking booking = new CarBooking(
                 id,
-                userId,
-                carId,
+                user.getId(),
+                car.getId(),
                 startDate,
                 endDate,
                 price,
@@ -77,54 +102,77 @@ public class CarBookingService {
         carBookingDAO.save(booking);
 
         System.out.println("Car booked successfully!");
-
+        System.out.println(booking);
     }
 
-    // Get all bookings
-    public CarBooking[] findAllBookings(){
+    // Find all bookings
+    public CarBooking[] findAllBookings() {
         return carBookingDAO.findAll();
     }
 
     // Find booking by ID
-    public Optional<CarBooking> findBookingById(UUID id){
-        if (id == null){
-            throw new IllegalArgumentException("Id cannot be null");
+    public Optional<CarBooking> findBookingById(UUID id) {
+
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
         }
+
         return carBookingDAO.findById(id);
     }
 
-    // Find all bookings belonging to a customer
-    public CarBooking[] findBookingsByUserId(UUID userId){
-        if (userId == null){
-            throw new IllegalArgumentException("User Id cannot be null");
+    // Find bookings by user ID
+    public CarBooking[] findBookingsByUserId(UUID userId) {
+
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
         }
+
         return carBookingDAO.findByUserId(userId);
     }
 
-    // Find all bookings for a particular car
-    public CarBooking[] findBookingsByCarId(UUID carId){
-        if (carId == null){
-            throw new IllegalArgumentException("Car Id cannot be null");
+    // Find bookings by car ID
+    public CarBooking[] findBookingsByCarId(UUID carId) {
+
+        if (carId == null) {
+            throw new IllegalArgumentException("Car ID cannot be null");
         }
+
         return carBookingDAO.findByCarId(carId);
     }
 
-    // 6. Check car availability
-    public boolean isCarAvailable(UUID carId,
-                                  LocalDate startDate,
-                                  LocalDate endDate) {
+    // Delete booking
+    public Optional<CarBooking> removeBooking(UUID id) {
+
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
+        }
+
+        return carBookingDAO.deleteById(id);
+    }
+
+    // Check car availability
+    public boolean isCarAvailable(
+            UUID carId,
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        if (carId == null || startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Invalid availability arguments");
+        }
+
+        if (!endDate.isAfter(startDate)) {
+            throw new IllegalArgumentException("Invalid booking dates");
+        }
 
         CarBooking[] bookings = carBookingDAO.findByCarId(carId);
 
-        for (int i = 0; i < bookings.length; i++) {
-
-            CarBooking existingBooking = bookings[i];
+        for (CarBooking existingBooking : bookings) {
 
             if (existingBooking.getStatus() == BookingStatus.ACTIVE) {
 
                 boolean datesOverlap =
-                        startDate.isBefore(existingBooking.getEndDate())
-                                && endDate.isAfter(existingBooking.getStartDate());
+                        !startDate.isAfter(existingBooking.getEndDate())
+                                && !endDate.isBefore(existingBooking.getStartDate());
 
                 if (datesOverlap) {
                     return false;
@@ -134,5 +182,4 @@ public class CarBookingService {
 
         return true;
     }
-
 }
