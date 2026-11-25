@@ -3,42 +3,56 @@ package com.augustine.user;
 import java.util.Optional;
 import java.util.UUID;
 
+
+import java.util.Optional;
+import java.util.UUID;
+
 public class UserService {
-    UserDAO userDAO = new UserDAO();
 
-    // Register a new customer
-    public void registerUser(UUID id, String name){
-        if (id == null){
-            throw new IllegalArgumentException("Id cannot be null");
+    private final UserDAO userDAO;
+
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
+
+    public void registerUser(UUID id, String name) {
+
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
         }
 
-        if (name == null || name.isBlank()){
-            throw new IllegalArgumentException("The name field cannot be left empty");
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Name cannot be empty");
         }
 
-        User user = new User(id, name);
+        if (userDAO.findById(id).isPresent()) {
+            throw new IllegalArgumentException("User already exists");
+        }
+
+        User user = new User(id, name.trim());
+
         userDAO.save(user);
     }
 
-    // Get all registered customers
-    public User[] findAllUsers(){
-        return  userDAO.findAll();
+    public User[] findAllUsers() {
+        return userDAO.findAll();
     }
 
-    // Find customer by ID
-    public Optional<User> findCustomerById(UUID id){
-        if (id == null){
-            throw new IllegalArgumentException("Id cannot be null");
+    public Optional<User> findUserById(UUID id) {
+
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
         }
 
         return userDAO.findById(id);
     }
 
-    // Remove a customer
-    public Optional<User> removeCustomer(UUID id){
-        if (id == null){
-            throw new IllegalArgumentException("Id cannot be null");
+    public Optional<User> removeUser(UUID id) {
+
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
         }
+
         return userDAO.deleteById(id);
     }
 }

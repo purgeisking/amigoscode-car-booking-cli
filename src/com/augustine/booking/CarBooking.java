@@ -1,15 +1,17 @@
 package com.augustine.booking;
 
-import com.augustine.car.Car;
-import com.augustine.user.User;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-public class CarBooking {
+public class CarBooking implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private UUID id;
     private UUID userId;
     private UUID carId;
@@ -19,9 +21,6 @@ public class CarBooking {
     private BookingStatus status;
     private LocalDateTime bookedAt;
 
-    public CarBooking() {
-    }
-
     public CarBooking(UUID id,
                       UUID userId,
                       UUID carId,
@@ -30,6 +29,7 @@ public class CarBooking {
                       BigDecimal price,
                       BookingStatus status,
                       LocalDateTime bookedAt) {
+
         this.id = id;
         this.userId = userId;
         this.carId = carId;
@@ -74,14 +74,28 @@ public class CarBooking {
 
     @Override
     public boolean equals(Object o) {
+
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         CarBooking that = (CarBooking) o;
-        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(carId, that.carId) && Objects.equals(startDate, that.startDate) && Objects.equals(endDate, that.endDate) && Objects.equals(price, that.price) && status == that.status && Objects.equals(bookedAt, that.bookedAt);
+
+        return Objects.equals(id, that.id)
+                && Objects.equals(userId, that.userId)
+                && Objects.equals(carId, that.carId)
+                && Objects.equals(startDate, that.startDate)
+                && Objects.equals(endDate, that.endDate)
+                && Objects.equals(price, that.price)
+                && status == that.status
+                && Objects.equals(bookedAt, that.bookedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userId, carId, startDate, endDate, price, status, bookedAt);
+        return Objects.hash(
+                id, userId, carId, startDate,
+                endDate, price, status, bookedAt
+        );
     }
 
     @Override
