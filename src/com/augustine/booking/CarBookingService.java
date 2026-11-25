@@ -1,87 +1,138 @@
 package com.augustine.booking;
 
+import com.augustine.car.Brand;
 import com.augustine.car.Car;
+import com.augustine.car.CarDAO;
+import com.augustine.car.CarService;
 import com.augustine.user.User;
+import com.augustine.user.UserDAO;
+import com.augustine.user.UserService;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CarBookingService {
-    User user = new User();
-    Car car = new Car();
-    public CarBooking bookCar(UUID userId, UUID carId, LocalDate startDate, LocalDate endDate) {
-// 1. Look up the user by userId
-        if (userId.equals(user.getId()))
-            System.out.println("User available");
-// - if not found, throw an exception or print an error
-        if (userId == null) {
-            throw new IllegalArgumentException("this user does not exit");
+    CarBookingDAO carBookingDAO = new CarBookingDAO();
+
+    UserDAO userDAO = new UserDAO();
+
+    CarDAO carDAO = new CarDAO();
+
+
+    // Book a car for a customer
+    public void bookCar(UUID id, UUID userId, UUID carId,
+                        LocalDate startDate, LocalDate endDate){
+
+        if (id == null){
+            throw new IllegalArgumentException("Id cannot be null");
         }
 
-// 2. Look up the car by carId
-        Car car = new Car();
-        if(carId.equals(car.getId())){
-            System.out.println("Car available");
+        if (userId == null){
+            throw new IllegalArgumentException("costumer Id cannot be null");
         }
 
-// - if not found, throw an exception or print an error
-        else{
-            throw new IllegalArgumentException("This cat does not exist here");
+        if (carId == null){
+            throw new IllegalArgumentException("Car Id cannot be null");
         }
 
-// 3. Validate the dates:
-// - startDate must not be in the past
-        if (startDate.isBefore(LocalDate.now())) {
-            throw new DateTimeException("Starting date for a transaction cannot be a passed date");
+        if (startDate.isAfter(endDate)){
+            throw new IllegalArgumentException("Invalid Date");
         }
 
-// - endDate must be after startDate
-            if (endDate.isBefore(startDate)) {
-                throw new DateTimeException("you can't return a car on a passed date bro 😂😂😂");
-            }
+        Optional<User> user = userDAO.findById(userId);
 
-// - if invalid, throw IllegalArgumentException or print an error
-            if (startDate instanceof LocalDate) {
-                System.out.println(startDate);
-            } else if (endDate instanceof LocalDate) {
-                System.out.println(endDate);
-            } else {
-                throw new IllegalArgumentException("Invalid dates");
-            }
-
-// 4. Get all current bookings
-        int bookingNumber =100;
-        CarBooking[] bookings = new CarBooking[bookingNumber];
-        for (CarBooking booking : bookings) {
-            if (booking != null){
-                System.out.println(booking);
-            }
-
-
-
-// 5. Check whether an active booking already holds this car
-// - if it does, reject: the car is not available
-            if (booking != null && booking.getId().equals(carId) && new CarBooking().getStatus() == BookingStatus.ACTIVE){
-                System.out.println("""
-                        This car has been booked and cannot be booked twice🤕... Kindly choose another
-                        """);
-            }
+        if (user.isEmpty()){
+            throw new IllegalArgumentException("User not found");
         }
-// 6. Count the days with ChronoUnit.DAYS.between(startDate, endDate)
-        int numberOfDays = Math.toIntExact(ChronoUnit.DAYS.between(startDate, endDate));
 
-// 7. Calculate the price: car.getRentalPricePerDay() x numberOfDays
-        BigDecimal price = car.getRentalPricePerDay().multiply(new BigDecimal(numberOfDays));
-
-// 8. Build a CarBooking with a UUID, user, car, dates, price,
-// BookingStatus.ACTIVE and bookedAt = LocalDateTime.now()
-// 9. Save the booking through the DAO
-// 10. Return the saved booking
-            return null;
+        Optional<Car> car = carDAO.findById(carId);
+        if (car.isEmpty()){
+            throw new IllegalArgumentException("Car not found");
         }
+
+        if (!isCarAvailable(carId, startDate, endDate)) {
+            throw new IllegalArgumentException("Car is not available for these dates");
+        }
+
+
+        long day = ChronoUnit.DAYS.between(startDate, endDate);
+
+        BigDecimal price = car.get().getRentalPricePerDay().multiply(BigDecimal.valueOf(day));
+
+        CarBooking booking = new CarBooking(
+                id,
+                userId,
+                carId,
+                startDate,
+                endDate,
+                price,
+                BookingStatus.ACTIVE,
+                LocalDateTime.now()
+        );
+
+        carBookingDAO.save(booking);
+
+        System.out.println("Car booked successfully!");
 
     }
+
+    // Get all bookings
+    public CarBooking[] findAllBookings(){
+        return carBookingDAO.findAll();
+    }
+
+    // Find booking by ID
+    public Optional<CarBooking> findBookingById(UUID id){
+        if (id == null){
+            throw new IllegalArgumentException("Id cannot be null");
+        }
+        return carBookingDAO.findById(id);
+    }
+
+    // Find all bookings belonging to a customer
+    public CarBooking[] findBookingsByUserId(UUID userId){
+        if (userId == null){
+            throw new IllegalArgumentException("User Id cannot be null");
+        }
+        return carBookingDAO.findByUserId(userId);
+    }
+
+    // Find all bookings for a particular car
+    public CarBooking[] findBookingsByCarId(UUID carId){
+        if (carId == null){
+            throw new IllegalArgumentException("Car Id cannot be null");
+        }
+        return carBookingDAO.findByCarId(carId);
+    }
+
+    // 6. Check car availability
+    public boolean isCarAvailable(UUID carId,
+                                  LocalDate startDate,
+                                  LocalDate endDate) {
+
+        CarBooking[] bookings = carBookingDAO.findByCarId(carId);
+
+        for (int i = 0; i < bookings.length; i++) {
+
+            CarBooking existingBooking = bookings[i];
+
+            if (existingBooking.getStatus() == BookingStatus.ACTIVE) {
+
+                boolean datesOverlap =
+                        startDate.isBefore(existingBooking.getEndDate())
+                                && endDate.isAfter(existingBooking.getStartDate());
+
+                if (datesOverlap) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+}

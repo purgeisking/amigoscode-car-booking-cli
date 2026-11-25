@@ -14,13 +14,17 @@ public class Car {
     public Car() {
     }
 
+    public Car(UUID id, BigDecimal rentalPricePerDay) {
+        this.id = id;
+        this.rentalPricePerDay = rentalPricePerDay;
+    }
+
     public Car(Brand brand) {
-        this.id = UUID.randomUUID();
         this.brand = brand;
     }
 
     public Car(UUID id, String regNumber, BigDecimal rentalPricePerDay, Brand brand, boolean isElectric) {
-        this.id = UUID.randomUUID();
+        this.id = id;
         this.regNumber = regNumber;
         this.rentalPricePerDay = rentalPricePerDay;
         this.brand = brand;

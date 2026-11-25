@@ -7,14 +7,6 @@ public class User {
     private UUID id;
     private String name;
 
-    public User() {
-    }
-
-    public User(String name) {
-        this.id = UUID.randomUUID();
-        this.name = name;
-    }
-
     public User(UUID id, String name) {
         this.id = id;
         this.name = name;
@@ -55,4 +47,5 @@ public class User {
                 ", name='" + name + '\'' +
                 '}';
     }
+
 }

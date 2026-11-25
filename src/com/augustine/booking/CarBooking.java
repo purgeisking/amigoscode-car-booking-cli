@@ -11,8 +11,8 @@ import java.util.UUID;
 
 public class CarBooking {
     private UUID id;
-    private User user;
-    private Car car;
+    private UUID userId;
+    private UUID carId;
     private LocalDate startDate;
     private LocalDate endDate;
     private BigDecimal price;
@@ -22,35 +22,17 @@ public class CarBooking {
     public CarBooking() {
     }
 
-    public CarBooking(User user,
-                      Car car,
+    public CarBooking(UUID id,
+                      UUID userId,
+                      UUID carId,
                       LocalDate startDate,
                       LocalDate endDate,
                       BigDecimal price,
                       BookingStatus status,
                       LocalDateTime bookedAt) {
-        this.id = UUID.randomUUID();
-        this.user = user;
-        this.car = car;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.price = price;
-        this.status = status;
-        this.bookedAt = bookedAt;
-    }
-
-    public CarBooking(UUID id,
-                      User user,
-                      Car car,
-                      LocalDate startDate,
-                      LocalDate endDate,
-                      BigDecimal price,
-                      BookingStatus status,
-                      LocalDateTime bookedAt)
-    {
-        this.id = UUID.randomUUID();
-        this.user = user;
-        this.car = car;
+        this.id = id;
+        this.userId = userId;
+        this.carId = carId;
         this.startDate = startDate;
         this.endDate = endDate;
         this.price = price;
@@ -62,84 +44,52 @@ public class CarBooking {
         return id;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public UUID getUserId() {
+        return userId;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Car getCar() {
-        return car;
-    }
-
-    public void setCar(Car car) {
-        this.car = car;
+    public UUID getCarId() {
+        return carId;
     }
 
     public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
     public LocalDate getEndDate() {
         return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
     }
 
     public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
     public BookingStatus getStatus() {
         return status;
-    }
-
-    public void setStatus(BookingStatus status) {
-        this.status = status;
     }
 
     public LocalDateTime getBookedAt() {
         return bookedAt;
     }
 
-    public void setBookedAt(LocalDateTime bookedAt) {
-        this.bookedAt = bookedAt;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         CarBooking that = (CarBooking) o;
-        return Objects.equals(id, that.id) && Objects.equals(user, that.user) && Objects.equals(car, that.car) && Objects.equals(startDate, that.startDate) && Objects.equals(endDate, that.endDate) && Objects.equals(price, that.price) && status == that.status && Objects.equals(bookedAt, that.bookedAt);
+        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(carId, that.carId) && Objects.equals(startDate, that.startDate) && Objects.equals(endDate, that.endDate) && Objects.equals(price, that.price) && status == that.status && Objects.equals(bookedAt, that.bookedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, car, startDate, endDate, price, status, bookedAt);
+        return Objects.hash(id, userId, carId, startDate, endDate, price, status, bookedAt);
     }
 
     @Override
     public String toString() {
         return "CarBooking{" +
                 "id=" + id +
-                ", user=" + user +
-                ", car=" + car +
+                ", userId=" + userId +
+                ", carId=" + carId +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
                 ", price=" + price +
